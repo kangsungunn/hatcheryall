@@ -1,0 +1,177 @@
+services:
+  # API Gateway
+  api-gateway:
+    build:
+      context: ./api.kroaddy.site
+      dockerfile: gateway/Dockerfile
+    ports:
+      - "8080:8080"
+    container_name: api-gateway
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - redis
+      - oauthservice
+      - userservice
+    networks:
+      - kroaddy-network
+
+  # OAuth Service
+  oauthservice:
+    build:
+      context: ./core.kroaddy.site
+      dockerfile: oauthservice/Dockerfile
+    ports:
+      - "8081:8081"
+    container_name: oauthservice
+    environment:
+      - SERVER_PORT=8081
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - KAKAO_REST_API_KEY=${KAKAO_REST_API_KEY:-}
+      - KAKAO_CLIENT_SECRET=${KAKAO_CLIENT_SECRET:-}
+      - NAVER_CLIENT_ID=${NAVER_CLIENT_ID:-}
+      - NAVER_CLIENT_SECRET=${NAVER_CLIENT_SECRET:-}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      - JWT_SECRET=${JWT_SECRET:-default-secret-key-change-in-production-min-32-characters}
+    depends_on:
+      - redis
+    networks:
+      - kroaddy-network
+
+  # User Service
+  userservice:
+    build:
+      context: ./core.kroaddy.site
+      dockerfile: userservice/Dockerfile
+    ports:
+      - "8082:8082"
+    container_name: userservice
+    networks:
+      - kroaddy-network
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    container_name: redis
+    networks:
+      - kroaddy-network
+
+  # Crawler Service
+  crawlerservice:
+    build: ./ai.kroaddy.site/services/crawlerservice
+    ports:
+      - "9001:9001"
+    container_name: crawlerservice
+    restart: unless-stopped
+    networks:
+      - kroaddy-network
+
+  # Auth Service (AI)
+  authservice:
+    build:
+      context: ./ai.kroaddy.site
+      dockerfile: services/authservice/Dockerfile
+    ports:
+      - "9002:9002"
+    container_name: authservice
+    restart: unless-stopped
+    networks:
+      - kroaddy-network
+
+  # Chatbot Service
+  chatbotservice:
+    build: ./ai.kroaddy.site/services/chatbotservice
+    ports:
+      - "9003:9003"
+    container_name: chatbotservice
+    restart: unless-stopped
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+    networks:
+      - kroaddy-network
+
+  # RAG Service
+  ragservice:
+    build: ./ai.kroaddy.site/services/ragservice
+    ports:
+      - "9004:9004"
+    container_name: ragservice
+    restart: unless-stopped
+    volumes:
+      - ./ai.kroaddy.site/services/ragservice/vector_db:/app/vector_db
+      - ./ai.kroaddy.site/services/ragservice/data:/app/data
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+    networks:
+      - kroaddy-network
+
+  # ML Service
+  mlservice:
+    build:
+      context: ./ai.kroaddy.site
+      dockerfile: services/mlservice/Dockerfile
+    ports:
+      - "9006:9006"
+    container_name: mlservice
+    restart: unless-stopped
+    volumes:
+      - ./ai.kroaddy.site/services/mlservice/app/titanic/models:/app/app/titanic/models
+      - ./ai.kroaddy.site/services/mlservice/app/seoul_crime/save:/app/app/seoul_crime/save
+      - ./ai.kroaddy.site/services/mlservice/app/nlp/save:/app/app/nlp/save
+      - ./ai.kroaddy.site/services/mlservice/app/nlp/emma/save:/app/app/nlp/emma/save
+      - ./ai.kroaddy.site/services/mlservice/app/nlp/samsung/save:/app/app/nlp/samsung/save
+      - nltk_data:/root/nltk_data
+    environment:
+      - KAKAO_MAP_API_KEY=${KAKAO_MAP_API_KEY:-}
+      - KAKAO_REST_API_KEY=${KAKAO_REST_API_KEY:-}
+    networks:
+      - kroaddy-network
+
+  # Frontend - User Website
+  www:
+    build: ./www.kroaddy.site
+    ports:
+      - "3000:3000"
+    container_name: www-kroaddy
+    environment:
+      - API_BASE_URL=http://api-gateway:8080
+      - NEXT_PUBLIC_API_BASE_URL=http://localhost:8080
+    depends_on:
+      - api-gateway
+    networks:
+      - kroaddy-network
+
+  # Frontend - Admin Dashboard
+  admin:
+    build: ./admin.kroaddy.site
+    ports:
+      - "4000:4000"
+    container_name: admin-kroaddy
+    environment:
+      - NEXT_PUBLIC_API_BASE_URL=http://localhost:8080
+    depends_on:
+      - api-gateway
+    networks:
+      - kroaddy-network
+
+  # Transformer Service
+  transformerservice:
+    build:
+      context: ./ai.kroaddy.site
+      dockerfile: services/transformerservice/Dockerfile
+    ports:
+      - "9007:9007"
+    container_name: transformerservice
+    restart: unless-stopped
+    networks:
+      - kroaddy-network
+
+
+networks:
+  kroaddy-network:
+    driver: bridge

@@ -1,0 +1,48 @@
+services:
+  crawlerservice:
+    build: ./services/crawlerservice
+    ports:
+      - "9001:9001"
+    container_name: crawlerservice
+    restart: unless-stopped
+
+  authservice:
+    build: ./services/authservice
+    ports:
+      - "9002:9002"
+    container_name: authservice
+    restart: unless-stopped
+
+  chatbotservice:
+    build: ./services/chatbotservice
+    ports:
+      - "9003:9003"
+    container_name: chatbotservice
+    restart: unless-stopped
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+
+  ragservice:
+    build: ./services/ragservice
+    ports:
+      - "9004:9004"
+    container_name: ragservice
+    restart: unless-stopped
+    volumes:
+      - ./services/ragservice/vector_db:/app/vector_db
+      - ./services/ragservice/data:/app/data
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+
+  mlservice:
+    build:
+      context: .
+      dockerfile: ./services/mlservice/Dockerfile
+    ports:
+      - "9006:9006"
+    container_name: mlservice
+    restart: unless-stopped
+    volumes:
+      - ./services/mlservice/app/titanic/models:/app/app/titanic/models
+    environment:
+      - GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY:-}

@@ -1,0 +1,109 @@
+services:
+  # API Gateway
+  api-gateway:
+    build:
+      context: ./api.kroaddy.site
+      dockerfile: gateway/Dockerfile
+    ports:
+      - "8080:8080"
+    container_name: api-gateway
+    networks:
+      - kroaddy-network
+
+  # Transformer Service
+  transformerservice:
+    build:
+      context: ./ai.kroaddy.site
+      dockerfile: services/transformerservice/Dockerfile
+    ports:
+      - "9007:9007"
+    container_name: transformerservice
+    restart: unless-stopped
+    networks:
+      - kroaddy-network
+  # ==================== 주석 처리된 서비스들 ====================
+  # 필요시 주석을 해제하여 사용하세요
+
+  # # Crawler Service
+  # crawlerservice:
+  #   build: ./ai.kroaddy.site/services/crawlerservice
+  #   ports:
+  #     - "9001:9001"
+  #   container_name: crawlerservice
+  #   restart: unless-stopped
+  #   networks:
+  #     - kroaddy-network
+
+  # # Auth Service (AI)
+  # authservice:
+  #   build:
+  #     context: ./ai.kroaddy.site
+  #     dockerfile: services/authservice/Dockerfile
+  #   ports:
+  #     - "9002:9002"
+  #   container_name: authservice
+  #   restart: unless-stopped
+  #   networks:
+  #     - kroaddy-network
+
+  # # Chatbot Service
+  # chatbotservice:
+  #   build: ./ai.kroaddy.site/services/chatbotservice
+  #   ports:
+  #     - "9003:9003"
+  #   container_name: chatbotservice
+  #   restart: unless-stopped
+  #   environment:
+  #     - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+  #   networks:
+  #     - kroaddy-network
+
+  # # RAG Service
+  # ragservice:
+  #   build: ./ai.kroaddy.site/services/ragservice
+  #   ports:
+  #     - "9004:9004"
+  #   container_name: ragservice
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./ai.kroaddy.site/services/ragservice/vector_db:/app/vector_db
+  #     - ./ai.kroaddy.site/services/ragservice/data:/app/data
+  #   environment:
+  #     - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+  #   networks:
+  #     - kroaddy-network
+
+  # # Frontend - User Website
+  # www:
+  #   build: ./www.kroaddy.site
+  #   ports:
+  #     - "3000:3000"
+  #   container_name: www-kroaddy
+  #   environment:
+  #     - API_BASE_URL=http://api-gateway:8080
+  #     - NEXT_PUBLIC_API_BASE_URL=http://localhost:8080
+  #   depends_on:
+  #     - api-gateway
+  #   networks:
+  #     - kroaddy-network
+
+  # # Frontend - Admin Dashboard
+  # admin:
+  #   build: ./admin.kroaddy.site
+  #   ports:
+  #     - "4000:4000"
+  #   container_name: admin-kroaddy
+  #   environment:
+  #     - NEXT_PUBLIC_API_BASE_URL=http://localhost:8080
+  #   depends_on:
+  #     - api-gateway
+  #   networks:
+  #     - kroaddy-network
+
+networks:
+  kroaddy-network:
+    driver: bridge
+
+volumes:
+  nltk_data:
+    driver: local
