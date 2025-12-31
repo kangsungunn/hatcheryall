@@ -7,3 +7,12 @@
 [submodule "hatcheryapi"]
 	path = hatcheryapi
 	url = https://github.com/kangsungunn/hatcheryapi.git
+[submodule "api.kroaddy.site"]
+	path = api.kroaddy.site
+	url = https://github.com/kangsungunn/hatcheryapi.git
+[submodule "chat.kroaddy.site"]
+	path = chat.kroaddy.site
+	url = https://github.com/kangsungunn/hatcherychat.git
+[submodule "vision.kroaddy.site"]
+	path = vision.kroaddy.site
+	url = https://github.com/kangsungunn/hatcheryvision.git
