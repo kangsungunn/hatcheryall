@@ -77,8 +77,11 @@ async function translateWithGoogle(text: string, sourceLang: string, targetLang:
 }
 
 export async function POST(request: NextRequest) {
+    let text = '';
     try {
-        const { text, sourceLang, targetLang } = await request.json();
+        const body = await request.json();
+        text = body.text || '';
+        const { sourceLang, targetLang } = body;
 
         if (!text || typeof text !== 'string') {
             return NextResponse.json(
