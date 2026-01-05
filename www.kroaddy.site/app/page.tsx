@@ -111,7 +111,7 @@ export default function HomePage() {
         <div className="container mx-auto max-w-4xl text-center">
           <div className="animate-fade-in-up">
             <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              서술형 답안, AI가 교정해드립니다
+              서술형 답안, 내가 교정해드립니다
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
               문장력·논리·문법·맥락을 종합 분석하여 정확한 첨삭과 고득점 예시 답안을 제공합니다

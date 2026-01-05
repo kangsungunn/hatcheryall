@@ -156,5 +156,5 @@ logs/
 # *.bmp
 # *.tiff
 
-
-
+*.pem
+.pem

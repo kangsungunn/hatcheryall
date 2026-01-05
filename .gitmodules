@@ -1,6 +1,3 @@
-[submodule "hagueapi"]
-	path = hagueapi
-	url = https://github.com/labzang/hagueapi.git
 [submodule "hatcheryall"]
 	path = hatcheryall
 	url = https://github.com/kangsungunn/hatcheryall.git
