@@ -12,10 +12,18 @@ export default function Dashboard() {
 
     useEffect(() => {
         // 백엔드 API로 인증 상태 확인 (쿠키 자동 전송)
-        fetch(`${API_BASE_URL}/api/auth/me`, {
-            credentials: 'include', // 쿠키 포함
-        })
-            .then(async (res) => {
+        const checkAuth = async () => {
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000); // 5초 타임아웃
+
+                const res = await fetch(`${API_BASE_URL}/api/auth/me`, {
+                    credentials: 'include', // 쿠키 포함
+                    signal: controller.signal,
+                });
+
+                clearTimeout(timeoutId);
+
                 if (res.ok) {
                     setIsAuthenticated(true);
                     const userData = await res.json();
@@ -24,14 +32,21 @@ export default function Dashboard() {
                     setIsAuthenticated(false);
                     router.push('/');
                 }
-            })
-            .catch(() => {
+            } catch (error) {
+                // 네트워크 에러나 타임아웃은 조용히 처리
                 setIsAuthenticated(false);
                 router.push('/');
-            })
-            .finally(() => {
+                
+                // 개발 환경에서만 콘솔에 경고 표시
+                if (process.env.NODE_ENV === 'development') {
+                    console.warn('⚠️ 백엔드 서버에 연결할 수 없습니다.');
+                }
+            } finally {
                 setLoading(false);
-            });
+            }
+        };
+
+        checkAuth();
     }, [router]);
 
     const handleLogout = async () => {

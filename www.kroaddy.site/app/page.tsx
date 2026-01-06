@@ -26,10 +26,19 @@ export default function HomePage() {
 
   useEffect(() => {
     // 로그인 상태 확인
-    fetch(`${API_BASE_URL}/api/auth/me`, {
-      credentials: 'include', // 쿠키 포함
-    })
-      .then(async (res) => {
+    // 로컬 개발 환경에서 백엔드 서버가 없을 수 있으므로 에러를 조용히 처리
+    const checkAuth = async () => {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5초 타임아웃
+
+        const res = await fetch(`${API_BASE_URL}/api/auth/me`, {
+          credentials: 'include', // 쿠키 포함
+          signal: controller.signal,
+        });
+
+        clearTimeout(timeoutId);
+
         if (res.ok) {
           setIsAuthenticated(true);
           const userData = await res.json();
@@ -38,14 +47,22 @@ export default function HomePage() {
           setIsAuthenticated(false);
           setUser(null);
         }
-      })
-      .catch(() => {
+      } catch (error) {
+        // 네트워크 에러나 타임아웃은 조용히 처리 (로컬 개발 환경에서 정상)
+        // 백엔드 서버가 없으면 비로그인 상태로 처리
         setIsAuthenticated(false);
         setUser(null);
-      })
-      .finally(() => {
+
+        // 개발 환경에서만 콘솔에 경고 표시
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('⚠️ 백엔드 서버에 연결할 수 없습니다. 로컬 개발 모드로 실행됩니다.');
+        }
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+
+    checkAuth();
   }, []);
 
   const handleLogout = async () => {
@@ -95,13 +112,13 @@ export default function HomePage() {
                 </Button>
               </>
             ) : (
-              <Link href="/login">
-                <Button variant="outline" size="sm">로그인</Button>
-              </Link>
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/login">로그인</Link>
+              </Button>
             )}
-            <Link href="/submit">
-              <Button size="sm">시작하기</Button>
-            </Link>
+            <Button size="sm" asChild>
+              <Link href="/submit">시작하기</Link>
+            </Button>
           </div>
         </div>
       </nav>

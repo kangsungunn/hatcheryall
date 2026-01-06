@@ -1,30 +1,15 @@
 'use client';
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { handleLoginSuccess } from '@/service/mainservice';
 
 export default function NaverCallbackPage() {
-    const router = useRouter();
-
     useEffect(() => {
-        // 백엔드에서 쿠키로 토큰을 설정하고 리다이렉트했으므로
-        // 여기서는 온보딩으로 이동
-        console.log('✅ 네이버 로그인 성공, 온보딩으로 이동합니다...');
-
-        // 로그인 성공 로그 기록 (백엔드로 직접 전송)
-        import('@/lib/api').then(({ API_BASE_URL }) => {
-            fetch(`${API_BASE_URL}/api/log/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include', // 쿠키 포함
-                body: JSON.stringify({
-                    action: '로그인 성공',
-                    url: window.location.href,
-                }),
-            }).catch(() => { });
+        // 백엔드에서 Refresh Token을 HttpOnly 쿠키에 저장한 후 콜백으로 리다이렉트됨
+        // handleLoginSuccess에서 후처리 수행
+        handleLoginSuccess('naver', '/onboarding').catch((error) => {
+            console.error('로그인 성공 처리 실패:', error);
         });
-
-        router.replace('/onboarding');
-    }, [router]);
+    }, []);
 
     return (
         <div className="flex min-h-screen items-center justify-center">
